@@ -73,6 +73,7 @@ export default function ContactForm({
           <label htmlFor="name">Name</label>
           <input
             type="text"
+            id="name"
             name="name"
             placeholder="Name"
             value={formInput.name}
@@ -84,6 +85,7 @@ export default function ContactForm({
           <label htmlFor="email">Email</label>
           <input
             type="email"
+            id="email"
             name="email"
             placeholder="Email"
             value={formInput.email}
@@ -93,6 +95,7 @@ export default function ContactForm({
         <div className={classes.formGroup}>
           <label htmlFor="message">Message</label>
           <textarea
+            id="message"
             name="message"
             placeholder="Message"
             value={formInput.message}
