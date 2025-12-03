@@ -8,15 +8,23 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(1);
+  const handleCounter = () => {
+    setCount((prevCount) => {
+      if (prevCount >= 10) {
+        return 1;
+      }
+      return prevCount + 1;
+    });
+  };
   return (
     <>
-      <div className={classes.card}>
-        <ContactForm email="" name="" message="" />
-        <button onClick={() => setCount((count) => count + 1)}>
+      <main className={classes.card}>
+        <button className={classes.counterButton} onClick={handleCounter}>
           count is {count}
-        </button>
-      </div>
+        </button>{" "}
+        <ContactForm email="" name="" message="" />
+      </main>
     </>
   );
 }
