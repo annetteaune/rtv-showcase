@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { z } from "zod";
 import classes from "./ContactForm.module.css";
 import { submitForm } from "../../utils/api";
 
@@ -7,6 +8,12 @@ interface ContactFormProps {
   name: string;
   message: string;
 }
+
+const contactFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.email().min(1, "Email is required"),
+  message: z.string().min(1, "Message is required"),
+});
 
 export default function ContactForm({
   email,
@@ -23,26 +30,43 @@ export default function ContactForm({
     success: boolean;
     message: string;
   } | null>(null);
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    message?: string;
+  }>({});
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormInput((prev) => ({ ...prev, [name]: value }));
+    // clear error upon typing
+    if (fieldErrors[name as keyof typeof fieldErrors]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if (!emailRegex.test(formInput.email)) {
-      setSubmissionResult({
-        success: false,
-        message: "Please enter a valid email address",
+    const validationResult = contactFormSchema.safeParse(formInput);
+
+    // if validation fails, set errors
+    if (!validationResult.success) {
+      const errors: { name?: string; email?: string; message?: string } = {};
+      validationResult.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof typeof errors;
+        if (field) {
+          errors[field] = issue.message;
+        }
       });
+      setFieldErrors(errors);
       return;
     }
+
+    // clear prev errors if validation is sucessful
+    setFieldErrors({});
     setIsSubmitting(true);
     setSubmissionResult(null);
 
@@ -79,6 +103,9 @@ export default function ContactForm({
             value={formInput.name}
             onChange={handleChange}
           />
+          {fieldErrors.name && (
+            <span className={classes.errorMessage}>{fieldErrors.name}</span>
+          )}
         </div>
 
         <div className={classes.formGroup}>
@@ -91,6 +118,9 @@ export default function ContactForm({
             value={formInput.email}
             onChange={handleChange}
           />
+          {fieldErrors.email && (
+            <span className={classes.errorMessage}>{fieldErrors.email}</span>
+          )}
         </div>
         <div className={classes.formGroup}>
           <label htmlFor="message">Message</label>
@@ -101,6 +131,9 @@ export default function ContactForm({
             value={formInput.message}
             onChange={handleChange}
           />
+          {fieldErrors.message && (
+            <span className={classes.errorMessage}>{fieldErrors.message}</span>
+          )}
         </div>
         <button type="submit" onClick={handleSubmit}>
           {isSubmitting ? "Submitting..." : "Submit"}
